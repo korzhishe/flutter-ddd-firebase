@@ -6,6 +6,8 @@ import 'package:notes_firebase_ddd_course/domain/core/value_validators.dart';
 class EmailAddress extends ValueObject<String> {
   final Either<ValueFailure<String>, String> value;
 
+  bool isValid() => value.isRight();
+
   factory EmailAddress(String input) {
     assert(input != null);
     return EmailAddress._(

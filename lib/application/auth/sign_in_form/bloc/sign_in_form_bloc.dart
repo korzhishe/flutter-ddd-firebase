@@ -25,6 +25,55 @@ class SignInFormBloc extends Bloc<SignInFormEvent, SignInFormState> {
   Stream<SignInFormState> mapEventToState(
     SignInFormEvent event,
   ) async* {
-    // TODO: implement mapEventToState
+    yield* event.map(
+      emailChanged: (e) async* {
+        yield state.copyWith(
+          emailAddress: EmailAddress(e.emailStr),
+          authFailureOrSuccessoption: none(),
+        );
+      },
+      passwordChanged: (e) async* {
+        yield state.copyWith(
+          password: Password(e.passwordStr),
+          authFailureOrSuccessoption: none(),
+        );
+      },
+      registerWithEmailAndPasswordPressed: (e) async* {
+       yield state.copyWith(
+          isSubmitting: true,
+          authFailureOrSuccessoption: none(),
+        );
+
+        
+
+        final failureOrSuccess = await _authFacade.registerWithEmailAndPassword();
+        yield state.copyWith(
+          isSubmitting: false,
+          authFailureOrSuccessoption: optionOf(failureOrSuccess),
+        );
+      },
+      signInWithEmailAndPasswordPressed: (e) async* {
+        yield state.copyWith(
+          isSubmitting: true,
+          authFailureOrSuccessoption: none(),
+        );
+        final failureOrSuccess = await _authFacade.signInWithGoogle();
+        yield state.copyWith(
+          isSubmitting: false,
+          authFailureOrSuccessoption: optionOf(failureOrSuccess),
+        );
+      },
+      signInWithGooglePressed: (e) async* {
+        yield state.copyWith(
+          isSubmitting: true,
+          authFailureOrSuccessoption: none(),
+        );
+        final failureOrSuccess = await _authFacade.signInWithGoogle();
+        yield state.copyWith(
+          isSubmitting: false,
+          authFailureOrSuccessoption: optionOf(failureOrSuccess),
+        );
+      },
+    );
   }
 }
