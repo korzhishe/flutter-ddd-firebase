@@ -3,10 +3,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:injectable/injectable.dart';
 import 'package:notes_firebase_ddd_course/domain/auth/auth_failure.dart';
 import 'package:notes_firebase_ddd_course/domain/auth/i_auth_facade.dart';
 import 'package:notes_firebase_ddd_course/domain/auth/value_objects.dart';
 
+@Injectable(as: IAuthFacade)
 class FireBaseFacade implements IAuthFacade {
   final FirebaseAuth _firebaseAuth;
   final GoogleSignIn _googleSignIn;
@@ -21,7 +23,7 @@ class FireBaseFacade implements IAuthFacade {
     final passwordStr = password.getOrCrash();
 
     try {
-      final authResult = await _firebaseAuth.createUserWithEmailAndPassword(
+      await _firebaseAuth.createUserWithEmailAndPassword(
           email: emailAddressStr, password: passwordStr);
       return right(unit);
     } on PlatformException catch (e) {
@@ -41,7 +43,7 @@ class FireBaseFacade implements IAuthFacade {
     final passwordStr = password.getOrCrash();
 
     try {
-      final authResult = await _firebaseAuth.signInWithEmailAndPassword(
+      await _firebaseAuth.signInWithEmailAndPassword(
           email: emailAddressStr, password: passwordStr);
       return right(unit);
     } on PlatformException catch (e) {
@@ -59,17 +61,20 @@ class FireBaseFacade implements IAuthFacade {
     try {
       final googleUser = await _googleSignIn.signIn();
       if (googleUser == null) {
-        return left(AuthFailure.cancelledByUser());
+        return left(const AuthFailure.cancelledByUser());
       }
       final googleAuthentication = await googleUser.authentication;
       final authCredential = GoogleAuthProvider.getCredential(
           idToken: googleAuthentication.idToken,
           accessToken: googleAuthentication.accessToken);
 
-      return _firebaseAuth
+      await _firebaseAuth
           .signInWithCredential(authCredential)
           .then((r) => right(unit))
           .catchError((_) => left(const AuthFailure.serverError()));
+
+      return right(unit);
+
     } on PlatformException catch (_) {
       return left(const AuthFailure.serverError());
     }
